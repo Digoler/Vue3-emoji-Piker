@@ -1,85 +1,54 @@
-<script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <div class="emoji">
+    <textarea v-model="input"></textarea>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
-  <RouterView />
+    <emoji-picker @emoji="insert" :emoji-table="emojis" :search="search">
+      <template
+        class="emoji-invoker"
+        #invoker
+        slot-scope="{ events: { click: clickEvent } }"
+        @click.stop="clickEvent"
+      >
+        <button type="button">open</button>
+      </template>
+      <template #picker slot-scope="{ emojis, insert, display }">
+        <div>
+          <div>
+            <input type="text" v-model="search" />
+          </div>
+          <div>
+            <div v-for="(emojiGroup, category) in emojis" :key="category">
+              <h5>{{ category }}</h5>
+              <div>
+                <button
+                  v-for="(emoji, emojiName) in emojiGroup"
+                  :key="emojiName"
+                  @click="insert(emoji)"
+                  :title="emojiName"
+                >
+                  {{ emoji }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </emoji-picker>
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+<script setup lang="ts">
+import { ref } from 'vue'
+import emojiPicker from '@/component/emojiPicker.vue'
+import emojis from '@/utils/emojis'
+let input = ref('')
+const search = ref('')
+function insert(emoji: any) {
+  input += emoji
 }
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+function clickEvent() {
+  console.log(132)
 }
+</script>
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
-</style>
+<style scoped></style>
