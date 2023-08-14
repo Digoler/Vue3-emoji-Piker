@@ -1,142 +1,153 @@
 <template>
   <div class="emoji">
     <h1>This is Emoji-Picker</h1>
-    <slot
-      name="invoker"
-      :events="{ click: (e:MouseEvent) => toggle(e) }"
-    ></slot>
-    <div v-click-outside="hide">
-      <slot
-        name="picker"
-        :emojis="Emojis"
-        :insert="insert"
-        :display="display"
-      ></slot>
+    <textarea v-model="input"></textarea>
+    <div class="showEmojis">
+      <button type="button" @click="toggle">open</button>
+    </div>
+    <div v-show="display.visible" v-click-outside="hide">
+      <div>
+            <input type="text" v-model="search" />
+          </div>
+          <div>
+            <div v-for="(emojiGroup, category) in Emojis" :key="category">
+              <h5>{{ category }}</h5>
+              <div>
+                <button
+                  v-for="(emoji, emojiName) in emojiGroup"
+                  :key="emojiName"
+                  @click="insert(emoji)"
+                >
+                  {{ emoji }}
+                </button>
+              </div>
+            </div>
+          </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from "vue";
-import type { PropType } from "vue";
-import Emojis from "@/utils/emojis";
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import type { PropType } from 'vue'
+import Emojis from '../utils/emojis'
 
 type Data = {
   display: {
-    x: number;
-    y: number;
-    visible: boolean;
-  };
-};
+    x: number
+    y: number
+    visible: boolean
+  }
+}
 type ClickOutsideElement = HTMLElement & {
-  __vueClickOutside__: ((e: MouseEvent) => void) | null;
-};
+  __vueClickOutside__: ((e: MouseEvent) => void) | null
+}
 
 //生命周期
 onMounted(() => {
-  document.addEventListener("keyup", escape);
-});
+  document.addEventListener('keyup', escape)
+})
 onUnmounted(() => {
-  document.removeEventListener("keyup", escape);
-});
+  document.removeEventListener('keyup', escape)
+})
 
 //定义计算属性
 const emojis: any = computed(() => {
   if (props.search) {
-    const obj: Record<string, Record<string, string>> = {};
+    const obj: Record<string, Record<string, string>> = {}
 
     for (const category in props.emojiTable) {
-      obj[category] = {};
+      obj[category] = {}
 
       for (const emoji in props.emojiTable[category]) {
         if (new RegExp(`.*${escapeRegExp(props.search)}.*`).test(emoji)) {
-          obj[category][emoji] = props.emojiTable[category][emoji];
+          obj[category][emoji] = props.emojiTable[category][emoji]
         }
       }
 
       if (Object.keys(obj[category]).length === 0) {
-        delete obj[category];
+        delete obj[category]
       }
     }
 
-    return obj;
+    return obj
   }
 
-  return props.emojiTable;
-});
+  return props.emojiTable
+})
 
 //定义props
 const props = defineProps({
   search: {
     type: String as PropType<string>,
     required: false,
-    default: "",
+    default: ''
   },
   emojiTable: {
     type: Object as PropType<Record<string, Record<string, string>>>,
-    required: false,
-    // default() {
-    //   return emojis;
-    // },
-  },
-});
+    required: false
+  }
+})
 
 //定义emits
-const emit = defineEmits(["emoji", "submit"]);
+const emit = defineEmits(['emoji', 'submit'])
 
 //定义数据
+let input = ref('')
+const search = ref('')
 const display = ref({
   x: 0,
   y: 0,
-  visible: false,
-});
+  visible: false
+})
 
 //定义方法
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
-const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 function insert(emoji: string): void {
-  emit("emoji", emoji);
+  input.value += emoji
 }
 function toggle(e: MouseEvent): void {
-  display.value.visible = !display.value.visible;
-  display.value.x = e.clientX;
-  display.value.y = e.clientY;
+  console.log('toggle')
+  display.value.visible = !display.value.visible
+  display.value.x = e.clientX
+  display.value.y = e.clientY
 }
 function hide(): void {
-  display.value.visible = false;
+  display.value.visible = false
 }
 function escape(e: KeyboardEvent): void {
   if (display.value.visible === true && e.keyCode === 27) {
-    display.value.visible = false;
+    display.value.visible = false
   }
 }
 
 //自定义指令
 const vClickOutside = {
   bind(el: ClickOutsideElement, binding: any) {
-    if (typeof binding.value !== "function") {
-      return;
+    if (typeof binding.value !== 'function') {
+      return
     }
 
-    const bubble = binding.modifiers.bubble;
+    const bubble = binding.modifiers.bubble
     const handler = (e: any) => {
       if (bubble || (!el.contains(e.target) && el !== e.target)) {
-        binding.value(e);
+        binding.value(e)
       }
-    };
-    el.__vueClickOutside__ = handler;
+    }
+    el.__vueClickOutside__ = handler
 
-    document.addEventListener("click", handler);
+    document.addEventListener('click', handler)
   },
   unbind(el: ClickOutsideElement) {
     if (el.__vueClickOutside__ !== null) {
-      document.removeEventListener("click", el.__vueClickOutside__);
+      document.removeEventListener('click', el.__vueClickOutside__)
 
-      el.__vueClickOutside__ = null;
+      el.__vueClickOutside__ = null
     }
-  },
-};
+  }
+}
 </script>
 
 <style>
